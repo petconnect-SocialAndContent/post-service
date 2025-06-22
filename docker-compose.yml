@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  post-service:
+    build: .
+    ports:
+      - "3006:3006"
+    env_file:
+      - .env
+    depends_on:
+      - post-mongo
+
+  post-mongo:
+    image: mongo:6.0
+    container_name: post-mongo
+    ports:
+      - "27022:27017"
+    volumes:
+      - post-mongo-data:/data/db
+
+volumes:
+  post-mongo-data:
