@@ -20,6 +20,8 @@ WORKDIR $APP_HOME
 
 # Copia y instala gemas
 COPY Gemfile Gemfile.lock ./
+RUN bundle lock --add-platform x86_64-linux
+
 RUN gem install bundler -v 2.4.19 && \
     bundle config set without 'development test' && \
     bundle install --jobs 4 --retry 3 && \
