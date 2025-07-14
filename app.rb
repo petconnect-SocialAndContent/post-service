@@ -3,7 +3,7 @@ require 'sinatra'
 require 'mongo'
 require 'json'
 require 'jwt'
-require 'dotenv/load' # <-- carga .env automáticamente
+require 'dotenv/load'
 
 # Configurar MongoDB
 mongo_uri = ENV['MONGODB_URI'] || 'mongodb://localhost:27017/post_service'
@@ -41,11 +41,12 @@ helpers do
 end
 
 # Rutas
-get '/api/posts' do
+get '/api/v1/posts' do
   content_type :json
-  posts = posts_collection.find.to_a.map do |post|
+  posts = posts_collection.find.sort(created_at: -1).limit(20).map do |post|
     {
-      id: post[:_id].to_s,
+      _id: post[:_id].to_s,
+      user_id: post[:user_id],
       title: post[:title],
       content: post[:content],
       created_at: post[:created_at]
@@ -54,38 +55,10 @@ get '/api/posts' do
   posts.to_json
 end
 
-post '/api/posts' do
+post '/api/v1/posts' do
   content_type :json
-  protected! # requiere JWT
+  protected!
 
-  payload = JSON.parse(request.body.read)
-
-  if payload['title'].to_s.strip.empty? || payload['content'].to_s.strip.empty?
-    status 400
-    return { error: 'Title and content are required' }.to_json
-  end
-
-  result = posts_collection.insert_one({
-    user_id: @current_user['id'],
-    title: payload['title'],
-    content: payload['content'],
-    created_at: Time.now
-  })
-
-  { id: result.inserted_id.to_s, message: 'Post created' }.to_json
-end
-
-# Documentación
-get '/api-docs' do
-  <<-HTML
-    <h1>Post Service API</h1>
-    <ul>
-      <li>GET /api/posts</li>
-      <li>POST /api/posts (requires JWT)</li>
-    </ul>
-  HTML
-end
-
-# Bind en Docker
-set :bind, '0.0.0.0'
-set :port, ENV.fetch('PORT', 3006)
+  data = JSON.parse(request.body.read)
+  title = data['title']
+  content = data['co]()
